@@ -1,0 +1,38 @@
+name: E2E Tests - Selenium (JavaScript)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build project
+        run: npm run build --if-present
+        continue-on-error: true
+      
+      - name: Run E2E Tests
+        run: npm test -- --test test/integration/project-page.test.js --test test/integration-legacy/teacher-registration/test_teacher_registration_address_step.js --test test/integration-legacy/teacher-registration/test_teacher_registration_demographics_step.js --test test/integration-legacy/teacher-registration/test_teacher_registration_name_step.js --test test/integration-legacy/teacher-registration/test_teacher_registration_organization_step.js --test test/integration-legacy/teacher-registration/test_teacher_registration_phone_step.js --test test/integration-legacy/teacher-registration/test_teacher_registration_username_step.js --test test/integration-legacy/teacher-registration/test_teacher_registration_usescratch_step.js
